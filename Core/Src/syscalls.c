@@ -82,7 +82,6 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
 }
 
 
-
 int _close(int file)
 {
   (void)file;

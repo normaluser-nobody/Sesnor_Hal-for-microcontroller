@@ -17,4 +17,4 @@ typedef struct {
 
 } i2c_bus_t;
 
-#endif // I2C_HAL_H
+#endif

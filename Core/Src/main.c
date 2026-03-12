@@ -22,9 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "type_define.h"
 #include "sensor_api.h"
 #include "i2c_hal.h"
+#define NUM_SENSORS 2
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +44,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
-
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
@@ -57,8 +56,9 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-extern i2c_bus_t stm32_create_i2c_bus(I2C_HandleTypeDef *hardware_handle);
-extern void tmp108_set(BasicSensor *self, i2c_bus_t *bus, uint8_t device_address);
+extern i2c_bus_t stm32_create_i2c_bus(I2C_HandleTypeDef *hardware_handle);  
+extern void tmp108_set(SensorObject *self, i2c_bus_t *bus, uint8_t device_address);  //here we add our particular sensor
+extern void adxl345_set(SensorObject *self, i2c_bus_t *bus, uint8_t device_address);  
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -98,48 +98,67 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  printf("\nBooting Universal Sensor OS...\n");
+  printf("\nBooting Universal Sensor HAL Testing...\n");
 
   // --- 1. Hardware Wiring ---
   i2c_bus_t primary_i2c_bus = stm32_create_i2c_bus(&hi2c1);
 
   // --- 2. Sensor Instantiation ---
-  BasicSensor temp_sensor;
-  tmp108_set(&temp_sensor, &primary_i2c_bus, 0x48);
+  SensorObject sensor_array[NUM_SENSORS];
+
+  tmp108_set(&sensor_array[0], &primary_i2c_bus, 0x48);
+  adxl345_set(&sensor_array[1], &primary_i2c_bus, 0x40);
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+/* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-// --- 3. Single Execution Sequence ---
-  printf("\n--- Step 1: Initializing Sensor ---\n");
-  if (os_sensor_init(&temp_sensor) == 1) {
-      printf("Success: Sensor initialized perfectly!\n");
-  } else {
-      printf("Error: Failed to initialize sensor.\n");
-  }
 
-  printf("\n--- Step 2: Reading Sensor Data ---\n");
-  if (os_sensor_read(&temp_sensor) == 0) {
-      printf("Error: Failed to read sensor data.\n");
-  }
+    // --- 3. Array Execution Sequence ---
+    // This for-loop will run through all sensors, then the while(1) restarts it
+    for (int i = 0; i < NUM_SENSORS; i++) 
+    {
+        printf("\n=== Processing Sensor Index [%d] ===\n", i);
 
-  printf("\n--- Step 3: Testing Advanced Gatekeeper ---\n");
-  if (os_sensor_sleep(&temp_sensor) == 0) {
-      printf("Gatekeeper Check Passed: API blocked basic sensor from sleeping!\n");
-  } else {
-      printf("sensor bypassed the gatekeeper thats mean sensor is advance mode!\n");
-  }
+        printf("--- Step 1: Initializing Sensor ---\n");
+        if (os_sensor_init(&sensor_array[i]) == 1)
+        {
+            printf("Success: Sensor initialized perfectly!\n");
+        }
+        else
+        {
+            printf("Error: Failed to initialize sensor.\n");
+        }
 
-  printf("\nOS Execution Complete.\n");
-  
-  HAL_Delay(3000);
-    /* USER CODE BEGIN 3 */
+        printf("--- Step 2: Reading Sensor Data ---\n");
+        if (os_sensor_read(&sensor_array[i]) == 0)
+        {
+            printf("Error: Failed to read sensor data.\n");
+        }
+
+        printf("--- Step 3: Let sensor Sleep ---\n");
+        if (os_sensor_sleep(&sensor_array[i]) == 0)
+        {
+            printf("API blocked: this operation is not supported by this sensor!\n");
+        }
+        
+        // Optional: Short delay between reading different sensors
+        HAL_Delay(50000); 
+    }
+
+    printf("\nArray execution completed. Restarting from zero...\n");
+    
+    // Main delay before polling the whole array again
+    HAL_Delay(3000);
   }
   /* USER CODE END 3 */
 }
+
 
 /**
   * @brief System Clock Configuration

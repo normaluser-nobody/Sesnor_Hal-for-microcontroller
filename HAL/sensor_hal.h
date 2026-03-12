@@ -11,12 +11,6 @@ typedef enum {
     SENSOR_TYPE_VEC3,
 } SensorDataType;
 
-typedef enum {
-    CLASS_BASIC_SENSOR,
-    CLASS_ADVANCE_CALIBRATING,
-    CLASS_ADVANCE_WIFI,
-    CLASS_ADVANCE_MOTOR
-} sensor_class_t;
 
 typedef union {
     float scalar;
@@ -36,7 +30,6 @@ typedef enum {
 
 typedef struct {
     uint8_t device_address;
-    sensor_class_t class_id;
     uint8_t channel;   
     SensorDataType type;     
     void *io_interface;     
@@ -44,12 +37,15 @@ typedef struct {
 
 typedef struct {
     sensor_status_t (*init)(SensorDeviceMeta *self);
-    sensor_status_t (*read)(SensorDeviceMeta *self, SensorDevicePacket *out);    
-} SensorDeviceOpsBase;
+    sensor_status_t (*read)(SensorDeviceMeta *self, SensorDevicePacket *out);   
+    sensor_status_t (*trigger)(SensorDeviceMeta *self);
+    sensor_status_t (*sleep)(SensorDeviceMeta *self); 
+} SensorVTable;
 
 typedef struct {
-    sensor_status_t (*trigger)(SensorDeviceMeta *self);
-    sensor_status_t (*sleep)(SensorDeviceMeta *self);
-} SensorDeviceOps_plus;
+    SensorDeviceMeta sensor_meta;
+    const SensorVTable *vtable; 
+    SensorDevicePacket sensor_packet;
+} SensorObject;
 
 #endif

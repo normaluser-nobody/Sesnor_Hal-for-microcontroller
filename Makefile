@@ -13,7 +13,7 @@
 ######################################
 # target
 ######################################
-TARGET = snesorfrfr
+TARGET = sensor_hal
 
 
 ######################################
@@ -56,7 +56,8 @@ Core/Src/system_stm32f1xx.c \
 Core/Src/sysmem.c \
 Core/Src/syscalls.c \
 API/sensor_api.c \
-Drivers/drv_tmp102.c \
+Drivers/drv_adxl345.c \
+Drivers/drv_tmp108.c \
 Port/stm32_i2c_adapter.c
 
 # ASM sources
